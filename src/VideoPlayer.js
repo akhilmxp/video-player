@@ -55,7 +55,6 @@ class VideoPlayer extends Component {
     if (typeof onVideoEnd === 'function') {
       onVideoEnd();
     }
-    this.setState({ paused: true })
   }
 
   setVideoReference = (node) => {
@@ -110,12 +109,13 @@ class VideoPlayer extends Component {
             <OverlayForUnmute onClick={this.handleFirstTimeInteraction} />}
 
           {paused &&
-            <PlayButton /*onClick={this.playPauseVideo}*/ />}
+            <PlayButton onClick={this.playPauseVideo} />}
 
-          {buffering &&
+          {!paused && buffering &&
             <SpinnerInCenter />}
 
           <video
+            key={mp4Url}
             className="video-player"
             ref={this.setVideoReference}
             // width={width}//"100%"
