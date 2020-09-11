@@ -10,11 +10,11 @@ const EXAMPLE_MP4_URL = [
 class App extends Component {
 
   state = {
-    mp4UrlIndex: 0
+    mp4UrlIndex: 0,
+    showButton: false,
   };
 
   videoEnded = () => {
-    console.log("Video ended")
     this.setState((prevState) => {
       return {
         ...prevState,
@@ -22,14 +22,22 @@ class App extends Component {
       }
     })
   }
+  handlePlayVideosButtonClick = () => {
+    this.setState({ showButton: false })
+  }
   render() {
+
+    // In case want to test video on load set the showButton to false in state variable 
+    const { showButton } = this.state
     return (
       <div className="App">
-        <VideoPlayer
+        {showButton && <button type="button" onClick={this.handlePlayVideosButtonClick}>Click to play videos</button>}
+
+        {!showButton && <VideoPlayer
           autoPlay={true} // boolean
           loop={false} // boolean, if true, videoEnd event doesn't trigger
           mp4Url={EXAMPLE_MP4_URL[this.state.mp4UrlIndex]}
-          onVideoEnd={this.videoEnded} />
+          onVideoEnd={this.videoEnded} />}
       </div>
     );
   }

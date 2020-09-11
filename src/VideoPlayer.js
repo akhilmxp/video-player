@@ -1,16 +1,15 @@
 import React, { Component } from 'react';
 import './VideoPlayer.scss'
 
-let FIRSTTIME_MUTED = true;
+let FIRST_TIME_MUTED = false;
+let FIRST_TIME_INTERACTED = false;
 
 class VideoPlayer extends Component {
 
   state = {
-    muted: FIRSTTIME_MUTED,
+    muted: false,
     paused: false,
     buffering: false,
-    // width: null,
-    // height: null,
   }
 
   updateBufferingState(value) {
@@ -19,8 +18,35 @@ class VideoPlayer extends Component {
     }
   }
 
-  handleFirstTimeInteraction = () => {
-    FIRSTTIME_MUTED = false;
+  startMutedPlayer() {
+    FIRST_TIME_MUTED = true
+    this.setState({ muted: true })
+    this.video.play()
+  }
+
+  checkFirstInteraction() {
+    if (!FIRST_TIME_INTERACTED &&
+      !FIRST_TIME_MUTED &&
+      !this.state.muted &&
+      this.props.autoPlay &&
+      this.video.play
+    ) {
+      let promise = this.video.play()
+      if (promise) {
+        promise.catch((e) => {
+          // console.log(e, e.name)
+          // Check if error is for first time interaction not happened
+          if (e && e.name === "NotAllowedError") {
+            this.startMutedPlayer()
+          }
+        });
+      }
+    }
+  }
+
+  handleFirstInteractionClick = () => {
+    FIRST_TIME_INTERACTED = true;
+    FIRST_TIME_MUTED = false;
     if (this.state.muted) {
       this.setState({ muted: false })
     }
@@ -60,27 +86,17 @@ class VideoPlayer extends Component {
   setVideoReference = (node) => {
     if (node) {
       this.video = node
+      this.checkFirstInteraction();
     }
   }
 
   componentDidMount() {
     const { autoPlay } = this.props;
 
-    // Unset mute for first time play in case autoplay is off
-    if (FIRSTTIME_MUTED && !autoPlay) {
-      this.handleFirstTimeInteraction()
-    }
-    // Show play icon in cse auto play is not on
+    // Show play icon in case auto play is not on
     if (!autoPlay) {
       this.setState({ paused: true })
     }
-
-    // TODO: In case following way doesn't work,
-    // will have to create a hooked component for window resize
-    // this.setState({
-    //   width: window.innerWidth,
-    //   height: window.innerHeight
-    // })
   }
 
   render() {
@@ -105,8 +121,8 @@ class VideoPlayer extends Component {
           </div>}
 
         {mp4Url && <>
-          {FIRSTTIME_MUTED &&
-            <OverlayForUnmute onClick={this.handleFirstTimeInteraction} />}
+          {FIRST_TIME_MUTED &&
+            <OverlayForUnmute onClick={this.handleFirstInteractionClick} />}
 
           {paused &&
             <PlayButton onClick={this.playPauseVideo} />}
